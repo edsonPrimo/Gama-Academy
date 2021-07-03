@@ -7,7 +7,6 @@ const livros = require('./database.js')
 const readline = require('readline-sync')
 const entradaInicial = readline.question('Deseja buscar um livro? S/N ')
 
-
 const categorias = livros.map(livro => livro.categoria)
 
 if (entradaInicial.toLocaleUpperCase() === 'S') {
@@ -24,6 +23,5 @@ if (entradaInicial.toLocaleUpperCase() === 'S') {
 else {
   const livrosOrdenados = livros.sort((a, b) => a.paginas - b.paginas)
   console.table(livrosOrdenados)
-
 }
 
