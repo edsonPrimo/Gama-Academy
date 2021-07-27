@@ -1,0 +1,71 @@
+var express = require('express');
+var router = express.Router();
+const cielo = require('../lib/cielo')
+
+/* Post criação de compra */
+router.post('/', function (req, res, next) {
+
+  cielo.compra(req.body).then((result) => {
+
+    const paymentId = result.Payment.PaymentId
+
+    cielo.captura(paymentId)
+      .then((result) => {
+        if (result.Status == 2) {
+          res.status(201).send({
+            "Status": "Sucesso",
+            "Mensagem": "Compra efetuada com sucesso",
+            "CompraID": paymentId
+          });
+        }
+        else {
+          res.statusCode(402).send({
+            "Status": "Falhou",
+            "Mensagem": "Compra não realizada, problema na comprança do cartão de crédito"
+          });
+        }
+
+      })
+      .catch((err) => {
+        console.error(err)
+      })
+  });
+
+});
+
+/* Post status de compra */
+router.get('/:compra_id/status', function (req, res, next) {
+  cielo.consulta(req.params.compra_id).then((result) => {
+    
+    let message = {}
+
+    switch (result.Payment.Status) {
+      case 1:
+        message = {
+          'Status': 'Pagamento autorizado'
+        };
+        break;
+
+      case 2:
+        message = {
+          'Status': 'Pagamento realizado'
+        };
+        break;
+
+      case 12:
+        message = {
+          'Status': 'Pagamento pendente'
+        };
+        break;
+
+      default:
+        message = {
+          'Status': 'Pagamento falhou'
+        };
+    }
+
+    res.send(message)
+  })
+});
+
+module.exports = router;
